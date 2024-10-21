@@ -13,8 +13,10 @@ module load Anaconda3/2022.05
 
 source activate gym3pot
 
-# python DQN.py
-python discrete_sac.py
+python DQN.py
+# python SAC_discrete.py
 # python UCRL2.py
 # python PSRL.py
+# python Q_learn.py
+# python SARSA.py
 

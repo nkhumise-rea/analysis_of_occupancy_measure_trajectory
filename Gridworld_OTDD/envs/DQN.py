@@ -34,9 +34,9 @@ from agent.buffer import Memory
 from agent.dqn_nn import DQN
 
 ## environments:
-# from task.grid2D import grid #normal
+# from task.grid2D import grid #deterministic_grid (default): 
+from task.grid2Dstoc import grid #stochastic_grid (slip_actions)
 # from task.grid2DMild import grid #single_optimal_path
-from task.grid2Dstoc import grid #stochastic_actions
 # from task.grid2DHard import grid #single_optimal_path + 2_sink_states + block_state
 
 from task.show import show_grid
@@ -64,8 +64,6 @@ class gridworld():
     def initialize_weights(self,m):
         if isinstance(m,nn.Linear):
             nn.init.uniform_(m.weight.data, -3e-4, 3e-4 )
-            # nn.init.normal_(m.weight.data, mean=0.0, std=3e-4)
-            # nn.init.constant_(m.weight.data, 1.13e-4)
             nn.init.constant_(m.bias.data,0)
 
     # target_model   
@@ -633,6 +631,7 @@ class gridworld():
         np.save(file_path,meta_data) #save_command
         return
 
+    #~~~~~~~~~~~~~~~~~ saving_policy_model ~~~~~~~~~~~~~~~~~~~~~~
     # saving_policy_model
     def policy_model_saver(self,steps):
         file_name = f'model_{steps}.pth'
@@ -642,6 +641,7 @@ class gridworld():
         file_path = abspath(join(this_dir,file_location,file_name)) #file_path: location + name
         torch.save(self.pi_net.state_dict(), file_path) 
         return
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     # regret_calculating_module
     def regret_comp(self,optimal_state_values_dict,state_values_dict):
@@ -745,7 +745,7 @@ if __name__ == '__main__':
                       rew_setting=1, #[rew_setting, num_eps]
                       n_eps=500) 
     # agent.main()
-    for  i in range(6,10):
+    for  i in range(10):
         agent.policy_models(
                             iteration=i,
                             problem_setting='stc'

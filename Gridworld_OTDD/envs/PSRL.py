@@ -34,9 +34,9 @@ agent_dir = abspath(join(this_dir))
 sys.path.insert(0,agent_dir)
 
 ## environments:
-# from task.grid2D import grid #normal
+# from task.grid2D import grid #deterministic_grid (default)
+from task.grid2Dstoc import grid #stochastic_grid (slip_actions)
 # from task.grid2DMild import grid #single_optimal_path
-from task.grid2Dstoc import grid #stochastic_actions
 # from task.grid2DHard import grid #single_optimal_path + 2_sink_states + block_state
 
 
@@ -610,7 +610,7 @@ if __name__ == '__main__':
                  n_eps=500) 
     
     # agent.main()
-    for  i in range(6,10):
+    for  i in range(10):
         agent.policy_models(
                             iteration=i,
                             problem_setting='stc'

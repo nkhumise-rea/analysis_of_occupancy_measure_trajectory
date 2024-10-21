@@ -1292,7 +1292,7 @@ if __name__ == '__main__':
                       algo = 'UCRL',
                       ) 
 
-    """    
+    # """    
     # state-actions trajectory per episode
     for i in range(10):
         agent.policy_data_generation(iteration=i,
@@ -1324,7 +1324,7 @@ if __name__ == '__main__':
                                 )
     # """
 
-    # """
+    """
     # multiple_policy_trajectory_evaluation_stats
     agent.policy_trajectory_evaluation_stats(problem_setting='stc' #['stc','dns','sps']
                                 )

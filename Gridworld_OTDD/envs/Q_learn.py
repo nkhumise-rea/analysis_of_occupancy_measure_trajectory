@@ -36,9 +36,9 @@ from agent.critic import Critic_Discrete
 from agent.actor import Actor_Discrete
 
 ## environments:
-# from task.grid2D import grid #normal
+# from task.grid2D import grid #deterministic_grid (default)
+from task.grid2Dstoc import grid #stochastic_grid (slip_actions)
 # from task.grid2DMild import grid #single_optimal_path
-from task.grid2Dstoc import grid #stochastic_actions
 # from task.grid2DHard import grid #single_optimal_path + 2_sink_states + block_state
 
 from task.show import show_grid
@@ -210,6 +210,116 @@ class gridworld():
         
         return trajectory_dataset,steps_col,score_col,con_eps,con_step,num_eval-1,state_dis,regret_col,state_value_col
     
+   # main -> policy_models  
+    def policy_models(self,
+             test_frq=1, #policy_eval_frequency
+             runs=1, #number_of_eval_repeats
+             common_policy=1, #[1: yes | 0: no]
+             epsilon=1.0, #[1.0: random | 0.0: greedy ]
+             iteration=0, 
+             problem_setting='stc'
+             ):
+        
+        self.iteration = iteration #process_iteration_num
+        self.problem_setting = problem_setting #problem_setting ['stc','dns','sps']
+                 
+        if common_policy == 1:
+            self.q_values = np.zeros((self.num_states[0],
+                                    self.num_states[1],
+                                    self.num_actions))
+       
+        else:
+            self.q_values = random.randint( -100,100,
+                                (self.num_states[0],
+                                self.num_states[1],
+                                self.num_actions))*0.01
+                
+        #hyperameters
+        lr = 5e-2 #_(sparse/stoc) #0.5_(dense)  
+        self.gamma = 0.99 #0.995
+        
+        #data collection
+        steps = 0
+        score_col = []
+        self.ext_eps = 0
+        con_eps = self.num_episodes #0
+
+        # OTDD misc
+        stop_learning = 0
+        test_frq = test_frq #test frequecy
+        self.dataset_dict = {} #policy_dataset_dictionary
+        self.num_eval = 0 #policy_evaluation_tracker
+
+        #stopping_criterion
+        num_stop = 5
+        stop_rew = deque(maxlen=num_stop) 
+        total_steps = 0
+
+        for episode in range(self.num_episodes):
+            
+            #stopping_criterion_evaluation
+            if stop_learning: 
+                con_eps = episode #convergence_episode
+                self.ext_eps = 1 #switch
+
+                # comment_testing
+                print('converged: ', self.iteration)
+                if con_eps != 0: break #prevents_luck_optimality_landing
+
+            stop_learning = 0 #reset_criterion_check
+        
+            done = False
+            self.store_ret = 0
+            score = 0
+            state = self.env.reset()
+
+            while not done:
+                steps += 1
+                total_steps +=1
+
+                #epsilon_decay
+                # if epsilon != 0:
+                #     epsilon = max(epsilon*0.9999,0.0001)
+
+                action_index = self.select_action(state,epsilon) 
+                next_state, reward, done = self.env.step(state,action_index)
+
+                max_Q_prime = self.q_values[next_state[0],next_state[0]].max()  
+                Q_curr =  self.q_values[state[0],state[1],action_index] 
+
+                #update Q-table
+                self.q_values[state[0],state[1],action_index] += lr*(
+                    reward + self.gamma*(1.0 - done)*max_Q_prime - Q_curr 
+                    )
+
+                score += reward
+                state = next_state 
+
+                # policy_model_saving + stopping_criterion_check   
+                self.policy_model_saver(steps-1)
+                stop_learning, done = self.stop_criterion(steps,stop_rew,done,episode)
+                                        
+            #collection of return per episode (!= step )
+            # score_col.append(score) 
+            # score_col.append(self.store_ret)
+
+        """     
+        print('con_eps: ', con_eps)
+        print('total_steps: ', total_steps)
+        # print('num_states: ',num_states)
+        _,act,ret,stt,trj = self.learnt_agent(self.env.initial_state)
+        print('act: ', act)
+        print('stt: ', stt)
+        print('ret: ', ret)
+        print('trj: ', trj)
+        layout = show_grid(input=trj, setting=self.rew_setting)
+        layout.state_traj(size=self.state_size)
+        self.plot_returns(score_col)
+        xxx
+        #"""
+        
+        return 
+  
     # plotting returns vs episodes
     def plot_returns(self, score_col, con_eps=None):
         plt.title('Return Plot')
@@ -425,6 +535,18 @@ class gridworld():
         plt.title('State_Visitation')  
         plt.show()
 
+    #~~~~~~~~~~~~~~~~~ saving_policy_model ~~~~~~~~~~~~~~~~~~~~~~
+    # saving_policy_model
+    def policy_model_saver(self,steps):
+        file_name = f'model_{steps}'
+        file_location = f'policy_models/Qlearn/set_{self.problem_setting}/iter_{self.iteration}' #file_location
+        os.makedirs(join(this_dir,file_location), exist_ok=True) #create_file_location_if_nonexistent
+        
+        file_path = abspath(join(this_dir,file_location,file_name)) #file_path: location + name
+        np.save(file_path,self.q_values) 
+        return
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
     # regret_calculating_module
     def regret_cal(self,q_values, V_k, s_k):
         regrets = []
@@ -457,10 +579,17 @@ if __name__ == '__main__':
     agent = gridworld(states_size=[n,n],
                       rew_setting=1, #[1:dense, 0:sparse]
                       n_eps=200) 
+    """    
     agent.main(
         runs=1,
         epsilon=0 #0 #[1: random | 0: greedy ]
     )
+    """
 
+    for  i in range(10):
+        agent.policy_models(
+                            iteration=i,
+                            problem_setting='stc'
+                            )
 
 

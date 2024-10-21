@@ -1369,9 +1369,9 @@ if __name__ == '__main__':
                       algo = 'DQN',
                       ) 
 
-    """ 
+    # """ 
     # state-actions trajectory per episode 
-    for i in [2,4,5,6,7,8,9]:  
+    for i in range(10):  
         agent.policy_data_generation(iteration=i,
                                     problem_setting='stc' #['stc','dns','sps']
                                         )
@@ -1379,7 +1379,7 @@ if __name__ == '__main__':
 
     """
     # policy trajectory in occumpancy_measure_space
-    for i in [2,4,5,6,7,8,9]: #range(10):
+    for i in range(10):
         agent.occupancy_generation(iteration=i,
                                 problem_setting='stc' #['stc','dns','sps']
                                     )
@@ -1416,7 +1416,7 @@ if __name__ == '__main__':
                                 )
     # """
 
-    # """   
+    """   
     # (single)_policy_evolution/trajectory_plot  
     agent.policy_evolution_plot(iteration=3,
                                 problem_setting='stc' #['stc','dns','sps']

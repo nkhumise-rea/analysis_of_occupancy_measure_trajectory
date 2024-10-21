@@ -31,9 +31,9 @@ agent_dir = abspath(join(this_dir))
 sys.path.insert(0,agent_dir)
 
 ## environments:
-# from task.grid2D import grid #normal
+# from task.grid2D import grid #deterministic_grid (default)
+from task.grid2Dstoc import grid #stochastic_grid (slip_actions)
 # from task.grid2DMild import grid #single_optimal_path
-from task.grid2Dstoc import grid #stochastic_actions
 # from task.grid2DHard import grid #single_optimal_path + 2_sink_states + block_state
 
 from task.show import show_grid
@@ -178,6 +178,114 @@ class gridworld():
            
         return trajectory_dataset,steps_col,score_col,con_eps, num_eval-1
 
+   # main -> policy_models  
+    def policy_models(self,
+             test_frq=50, #policy_eval_frequency
+             runs=1, #number_of_eval_repeats
+             common_policy=0, #[1: yes | 0: no]
+             epsilon=1.0,
+             iteration=0, 
+             problem_setting='stc'
+             ):
+        
+        self.iteration = iteration #process_iteration_num
+        self.problem_setting = problem_setting #problem_setting ['stc','dns','sps']
+         
+        if common_policy == 1:
+            self.q_values = np.zeros((self.num_states[0],
+                                    self.num_states[1],
+                                    self.num_actions))
+        
+        else:
+            self.q_values = random.randint( -100,100,
+                                (self.num_states[0],
+                                self.num_states[1],
+                                self.num_actions))*0.01
+            
+        #hyperameters
+        lr = 1e-0 #[5x5] -> 1.0 
+        self.gamma = 0.99 #0.995
+        
+        #data collection
+        score_col = []
+        steps = 0
+        self.ext_eps = 0
+        con_eps = self.num_episodes #0
+
+        # OTDD misc
+        stop_learning = 0
+        test_frq = test_frq #test frequecy
+        self.dataset_dict = {} #policy_dataset_dictionary
+        self.num_eval = 0 #policy_evaluation_tracker
+
+        #stopping_criterion
+        num_stop = 5
+        stop_rew = deque(maxlen=num_stop) #50, 10
+        
+        for episode in range(self.num_episodes):
+            
+            #stopping_criterion_evaluation
+            if stop_learning: 
+                con_eps = episode #convergence_episode
+                self.ext_eps = 1 #switch
+
+                # comment_testing
+                print('converged: ', self.iteration)
+                if con_eps != 0: break #prevents_luck_optimality_landing
+
+            stop_learning = 0 #reset_criterion_check
+        
+            done = False
+            self.store_ret = 0
+            score = 0
+            state = self.env.reset()
+
+            while not done:
+                steps += 1
+
+                # #epsilon_decay
+                # if epsilon != 0:
+                #     epsilon = max(epsilon*0.9999,0.0001)
+
+                action_index = self.select_action(state,epsilon) 
+                next_state, reward, done = self.env.step(state,action_index)
+
+                next_action_index = self.select_action(next_state,epsilon)
+
+                Q_next = self.q_values[next_state[0],next_state[0],next_action_index]   
+                Q_curr =  self.q_values[state[0],state[1],action_index] 
+
+                #update Q-table
+                self.q_values[state[0],state[1],action_index] += lr*(
+                    reward + self.gamma*(1.0 - done)*Q_next - Q_curr 
+                    )
+
+                score += reward
+                state = next_state 
+
+                # policy_model_saving + stopping_criterion_check   
+                self.policy_model_saver(steps-1)
+                stop_learning, done = self.stop_criterion(steps,stop_rew,done,episode)
+                                        
+                #collection of return per step
+                # score_col.append(score) 
+                # score_col.append(self.store_ret)
+                
+        """        
+        # print('num_states: ',num_states)
+        _,act,ret,stt,trj = self.learnt_agent(self.env.initial_state)
+        print('act: ', act)
+        print('stt: ', stt)
+        print('ret: ', ret)
+        print('trj: ', trj)
+        layout = show_grid(input=trj, setting=self.rew_setting)
+        layout.state_traj(size=self.state_size)
+        # self.plot_returns(score_col,con_eps)
+        # self.plot_returns(score_col)
+        # xxx
+        #"""
+           
+        return 
     
     # plotting returns vs episodes
     def plot_returns(self, score_col, con_eps=None):
@@ -275,17 +383,8 @@ class gridworld():
 
             # ft_list.append(self.pi_net.feature.numpy())
             act_list.append(self.env_test.actions[t_action_index])
-            
             t_state = t_next_state
             
-        # print(ft_list)
-        # print(st_list)
-        # print(act_list)
-        # print(ep_return)
-
-        # print('++++++++++++++++++++++++++++++++++++++++++')
-        # xxx
-
         return ft_list, act_list, ep_return, st_list, trj
 
     #action_selection_mechanism        
@@ -329,37 +428,51 @@ class gridworld():
         
     #policy_dataset_collection
     def pol_dataset(self, runs=1):
-        feat_list, act_list, stt_list, ret_list, trj_list = [],[],[],[],[]
+        # feat_list, act_list, stt_list, ret_list, trj_list = [],[],[],[],[]
+        rew_list, act_list, stt_list, ret_list = [],[],[],[]
+        act_du,stt_du = [],[]
         start_state = self.env.initial_state
-        for _ in range(runs):
-            _,acts,ret,stts,trj = self.learnt_agent(start_state) #feats
-            # feat_list += feats 
-            act_list += acts
-            stt_list += trj #stts
-            trj_list += trj
-            ret_list.append(ret)
+        for i in range(runs):
+            rews,acts,ret,_,trj = self.learnt_agent(start_state) #feats
+            rew_list += rews #immediate_rewards
+            act_list += acts #actions
+            stt_list += trj #states
+            ret_list.append(ret) #returns
+            act_du.append(len(act_list)) #size_action_list
+            stt_du.append(len(stt_list)) #size_state_list
 
-        self.dataset_dict[self.num_eval] = [stt_list,act_list,ret_list]
-
-        # layout = show_grid(input=trj_list, policy=self.num_eval, setting=self.rew_setting)
-        # layout.state_traj()
-
-        self.num_eval += 1
-    
-        # print('self.dataset_dict: ', self.dataset_dict)
-        # xxx
-        # print('++++++++++++++++++++++++++++++++++++++++++')
+        self.dataset_dict[self.num_eval] = [stt_list,act_list,rew_list,ret_list,stt_du,act_du]
+        self.num_eval += 1  
         return self.dataset_dict
+    
+    #~~~~~~~~~~~~~~~~~ saving_policy_model ~~~~~~~~~~~~~~~~~~~~~~
+    # saving_policy_model
+    def policy_model_saver(self,steps):
+        file_name = f'model_{steps}'
+        file_location = f'policy_models/SARSA/set_{self.problem_setting}/iter_{self.iteration}' #file_location
+        os.makedirs(join(this_dir,file_location), exist_ok=True) #create_file_location_if_nonexistent
+        
+        file_path = abspath(join(this_dir,file_location,file_name)) #file_path: location + name
+        np.save(file_path,self.q_values) 
+        return
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 #Execution
 if __name__ == '__main__':
     n = 5
     agent = gridworld(states_size=[n,n],
                       rew_setting=1, #[rew_setting, num_eps]
-                      n_eps=100) 
+                     n_eps=100) 
+    """
     agent.main(
         epsilon=0.05
     )
+    """
 
-
+    for  i in range(10):
+        agent.policy_models(
+                            iteration=i,
+                            problem_setting='stc'
+                            )
 
