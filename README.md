@@ -1,18 +1,52 @@
-# analysis_of_occupancy_measure_trajectory
-This depository contains scripts used for analysing various reinforcement learning (RL) algorithms by studying policy updates in the space of occupancy measures using optimal transport. This is supplementary material for the [paper](https://arxiv.org/abs/2402.09113): "How does your RL agent explore? An optimal transport analysis of occupancy measure trajectories."
+# Analysis of Occupancy Measure Trajectories
 
-## Installation 
-We recommend to set up a virtual environment using [Conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html). 
+Code accompanying the paper **"How does your RL agent explore? An optimal transport analysis of occupancy measure trajectories"** ([arXiv:2402.09113](https://arxiv.org/abs/2402.09113)).
 
-1. Clone the repo: <code>git clone https://github.com/nkhumise-rea/analysis_of_occupancy_measure_trajectory.git</code>   
-2. Navigate to the directory where the clone exists.
-3. Open command line and run the following: 
-	- <code>conda env create -f environment.yml</code>  to create the environment. 
- 	- <code>conda activate analysis</code> to activate the environment. 
-6. Verify installations by running <code>conda list</code> and <code>pip list</code>. 
+This repository provides the scripts used to analyse reinforcement-learning (RL) algorithms by tracking how their policies evolve in the space of **occupancy measures**, using optimal transport to measure the distance between successive policies along a training trajectory.
 
-## Execution
-You can find relevant instructions to evaluate algorithms in the <code>README.md files</code> located at:
+## Repository structure
 
-1. <code>Gridworld_OTDD directory</code> for an environment with discrete states and actions.
-2. <code>Mountain_Car_OTDD directory</code> for an environment with continuous states and actions.  
+| Directory | Environment | State / action space |
+|---|---|---|
+| [`Gridworld_OTDD/`](Gridworld_OTDD) | Gridworld | Discrete states and actions |
+| [`Mountain_Car_OTDD/`](Mountain_Car_OTDD) | Mountain Car | Continuous states and actions |
+
+Each directory has its own `README.md` with step-by-step instructions for training policies, generating occupancy-measure trajectories, and evaluating the optimal-transport metrics.
+
+## Installation
+
+We recommend setting up a virtual environment with [Conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html).
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/nkhumise-rea/analysis_of_occupancy_measure_trajectory.git
+   cd analysis_of_occupancy_measure_trajectory
+   ```
+2. Create and activate the environment:
+   ```bash
+   conda env create -f environment.yml
+   conda activate analysis
+   ```
+3. Verify the installation with `conda list` and `pip list`.
+
+## Usage
+
+See the per-environment instructions:
+
+- **[`Gridworld_OTDD/README.md`](Gridworld_OTDD/README.md)** — discrete state–action experiments (e.g. DQN).
+- **[`Mountain_Car_OTDD/README.md`](Mountain_Car_OTDD/README.md)** — continuous state–action experiments (e.g. DDPG).
+
+Both guides cover running an existing algorithm and adding your own.
+
+## Citation
+
+If you use this code, please cite:
+
+```bibtex
+@article{nkhumise2024explore,
+  title   = {How does Your RL Agent Explore? An Optimal Transport Analysis of Occupancy Measure Trajectories},
+  author  = {Nkhumise, Reabetswe M. and Basu, Debabrota and Prescott, Tony J. and Gilra, Aditya},
+  journal = {arXiv preprint arXiv:2402.09113},
+  year    = {2024}
+}
+```
