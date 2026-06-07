@@ -1,6 +1,6 @@
 # Analysis of Occupancy Measure Trajectories
 
-Code accompanying the paper **"How does your RL agent explore? An optimal transport analysis of occupancy measure trajectories"** ([arXiv:2402.09113](https://arxiv.org/abs/2402.09113)).
+Code accompanying the paper **"Studying Exploration in RL: An Optimal Transport Analysis of Occupancy Measure Trajectories"** ([TMRL](https://openreview.net/pdf?id=pdC092Nn8N)).
 
 This repository provides the scripts used to analyse reinforcement-learning (RL) algorithms by tracking how their policies evolve in the space of **occupancy measures**, using optimal transport to measure the distance between successive policies along a training trajectory.
 
@@ -44,9 +44,9 @@ If you use this code, please cite:
 
 ```bibtex
 @article{nkhumise2024explore,
-  title   = {How does Your RL Agent Explore? An Optimal Transport Analysis of Occupancy Measure Trajectories},
+  title   = {Studying Exploration in RL: An Optimal Transport Analysis of Occupancy Measure Trajectories},
   author  = {Nkhumise, Reabetswe M. and Basu, Debabrota and Prescott, Tony J. and Gilra, Aditya},
-  journal = {arXiv preprint arXiv:2402.09113},
-  year    = {2024}
+  journal = {Transactions on Machine Learning Research (TMLR)},
+  year    = {2025}
 }
 ```
