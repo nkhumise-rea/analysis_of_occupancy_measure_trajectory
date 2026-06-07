@@ -1,5 +1,5 @@
 # Mountain Car (continuous state-action space)
-This depository contains scripts used for analysing various reinforcement learning (RL) algorithms in a continuous state-action space. The paper can be found at [arXiv](https://arxiv.org/abs/2402.09113).
+This depository contains scripts used for analysing various reinforcement learning (RL) algorithms in a continuous state-action space. The paper, published in *Transactions on Machine Learning Research* (TMLR, 2025), can be found on [OpenReview](https://openreview.net/forum?id=pdC092Nn8N).
 
 ## Executing an existing algorithm
 We provide details about running an exemplary algorithm (e.g. DDPG in the Mountain-Car)

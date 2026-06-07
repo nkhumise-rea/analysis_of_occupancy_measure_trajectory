@@ -1,52 +1,82 @@
-# Analysis of Occupancy Measure Trajectories
+# Studying Exploration in RL: An Optimal Transport Analysis of Occupancy Measure Trajectories
 
-Code accompanying the paper **"How does your RL agent explore? An optimal transport analysis of occupancy measure trajectories"** ([arXiv:2402.09113](https://arxiv.org/abs/2402.09113)).
+[![Published in TMLR](https://img.shields.io/badge/TMLR-2025-b31b1b.svg)](https://openreview.net/forum?id=pdC092Nn8N)
+[![Paper (PDF)](https://img.shields.io/badge/paper-PDF-blue.svg)](https://openreview.net/pdf?id=pdC092Nn8N)
 
-This repository provides the scripts used to analyse reinforcement-learning (RL) algorithms by tracking how their policies evolve in the space of **occupancy measures**, using optimal transport to measure the distance between successive policies along a training trajectory.
+Reference implementation for the paper **"Studying Exploration in RL: An Optimal Transport Analysis of Occupancy Measure Trajectories"** (Nkhumise, Basu, Prescott & Gilra), published in *Transactions on Machine Learning Research* (TMLR), 2025 — [OpenReview](https://openreview.net/forum?id=pdC092Nn8N).
+
+## Motivation
+
+Modern reinforcement-learning (RL) algorithms differ widely in *how* they explore and optimise, yet they are routinely compared on a single axis — cumulative reward. A reward curve says little about the *process* by which an agent reaches its policy: how directly it travels, how much of its movement is productive, and how task difficulty shapes that journey. This work provides a quantitative, algorithm-agnostic framework for comparing the **learning processes** of RL algorithms.
+
+## Approach
+
+We represent the learning process as the sequence of policies $\{\pi_0, \pi_1, \dots, \pi_T\}$ produced during training, and study the **trajectory this sequence induces on the manifold of state–action occupancy measures**. Distances between successive policies are measured with an **optimal-transport metric** (a nested / hierarchical Wasserstein distance over the occupancy measures, in the spirit of the Optimal Transport Dataset Distance). The geometry of this policy trajectory — its length, curvature, and direction relative to the optimum — exposes the exploration behaviour that reward curves hide.
+
+## Metrics
+
+The framework introduces two complementary, theoretically grounded metrics:
+
+- **Effort of Sequential Learning (ESL)** — the length of the policy path travelled in occupancy-measure space, relative to the shortest (geodesic) path from the initial to the optimal policy. ESL quantifies how *circuitous* an algorithm's learning is.
+- **Optimal Movement Ratio (OMR)** — the fraction of policy movement that effectively reduces an analogue of regret. OMR connects occupancy-measure dynamics to suboptimality, quantifying how *productive* each update is.
+
+The paper derives **finite-sample approximation guarantees** that allow ESL and OMR to be estimated from samples *without access to an optimal policy*.
+
+## Experimental scope
+
+The metrics are evaluated across both discrete and continuous MDPs, spanning value-based, policy-gradient, and model-based exploration algorithms:
+
+| Environment | State–action space | Algorithms studied |
+|---|---|---|
+| [`Gridworld_OTDD/`](Gridworld_OTDD) | Discrete | DQN, Q-learning, SARSA, discrete SAC, PSRL, UCRL2, Boltzmann exploration |
+| [`Mountain_Car_OTDD/`](Mountain_Car_OTDD) | Continuous | DDPG, SAC, PPO |
+
+Each environment directory additionally provides **task-hardness analyses** (`evals/hardness_*.py`) examining how MDP difficulty interacts with exploration effort.
 
 ## Repository structure
 
-| Directory | Environment | State / action space |
-|---|---|---|
-| [`Gridworld_OTDD/`](Gridworld_OTDD) | Gridworld | Discrete states and actions |
-| [`Mountain_Car_OTDD/`](Mountain_Car_OTDD) | Mountain Car | Continuous states and actions |
-
-Each directory has its own `README.md` with step-by-step instructions for training policies, generating occupancy-measure trajectories, and evaluating the optimal-transport metrics.
+```
+.
+├── Gridworld_OTDD/          # Discrete state–action experiments
+│   ├── envs/                #   training scripts per algorithm (DQN.py, PSRL.py, UCRL2.py, ...)
+│   ├── models/              #   policy/occupancy-measure generation & evaluation
+│   └── evals/               #   task-hardness analyses
+├── Mountain_Car_OTDD/       # Continuous state–action experiments
+│   ├── envs/                #   training scripts (ddpg.py, sac.py, ppo.py)
+│   └── evals/               #   occupancy-measure model evaluation
+└── environment.yml          # Conda environment specification
+```
 
 ## Installation
 
-We recommend setting up a virtual environment with [Conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html).
+We recommend an isolated environment via [Conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html).
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/nkhumise-rea/analysis_of_occupancy_measure_trajectory.git
-   cd analysis_of_occupancy_measure_trajectory
-   ```
-2. Create and activate the environment:
-   ```bash
-   conda env create -f environment.yml
-   conda activate analysis
-   ```
-3. Verify the installation with `conda list` and `pip list`.
+```bash
+git clone https://github.com/nkhumise-rea/analysis_of_occupancy_measure_trajectory.git
+cd analysis_of_occupancy_measure_trajectory
+conda env create -f environment.yml
+conda activate analysis
+```
 
-## Usage
+**Core dependencies:** Python 3.10, PyTorch 1.13, [POT (Python Optimal Transport)](https://pythonot.github.io/) 0.9, [Pymanopt](https://pymanopt.org/) 2.1 (manifold optimisation), and Gym 0.26.
 
-See the per-environment instructions:
+## Reproducing the experiments
 
-- **[`Gridworld_OTDD/README.md`](Gridworld_OTDD/README.md)** — discrete state–action experiments (e.g. DQN).
-- **[`Mountain_Car_OTDD/README.md`](Mountain_Car_OTDD/README.md)** — continuous state–action experiments (e.g. DDPG).
+The full ESL/OMR pipeline — (1) train and checkpoint a sequence of policies, (2) generate occupancy-measure trajectories, (3) evaluate the metrics and visualise the policy evolution — is documented per environment:
 
-Both guides cover running an existing algorithm and adding your own.
+- **[`Gridworld_OTDD/README.md`](Gridworld_OTDD/README.md)** — discrete state–action experiments.
+- **[`Mountain_Car_OTDD/README.md`](Mountain_Car_OTDD/README.md)** — continuous state–action experiments.
+
+Both guides also explain how to drop in your own algorithm and have it analysed under the same framework.
 
 ## Citation
 
-If you use this code, please cite:
-
 ```bibtex
-@article{nkhumise2024explore,
-  title   = {How does Your RL Agent Explore? An Optimal Transport Analysis of Occupancy Measure Trajectories},
+@article{nkhumise2025studying,
+  title   = {Studying Exploration in {RL}: An Optimal Transport Analysis of Occupancy Measure Trajectories},
   author  = {Nkhumise, Reabetswe M. and Basu, Debabrota and Prescott, Tony J. and Gilra, Aditya},
-  journal = {arXiv preprint arXiv:2402.09113},
-  year    = {2024}
+  journal = {Transactions on Machine Learning Research (TMLR)},
+  year    = {2025},
+  url     = {https://openreview.net/forum?id=pdC092Nn8N}
 }
 ```
