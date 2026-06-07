@@ -43,7 +43,7 @@ Both guides cover running an existing algorithm and adding your own.
 If you use this code, please cite:
 
 ```bibtex
-@article{nkhumise2024explore,
+@article{nkhumise2025explore,
   title   = {Studying Exploration in RL: An Optimal Transport Analysis of Occupancy Measure Trajectories},
   author  = {Nkhumise, Reabetswe M. and Basu, Debabrota and Prescott, Tony J. and Gilra, Aditya},
   journal = {Transactions on Machine Learning Research (TMLR)},
